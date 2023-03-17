@@ -1,6 +1,8 @@
 import { useToken } from "@/components/ui-kit/core/token";
 import { throwError } from "@/logic/internals/utils/throw-error";
 import { useProjectContext } from "@/templates/index/contexts/project/project-context";
+import { useSelectionContext } from "@/templates/index/contexts/selection/selection-context";
+import { SelectionType } from "@/templates/index/contexts/selection/selection.enums";
 import { Delete, Edit, MoreVert } from "@mui/icons-material";
 import { Button, Col, Dropdown, Input, Row, Typography } from "antd";
 import Measure from "react-measure";
@@ -10,6 +12,7 @@ export function TrackIndicators(props: {
   onHeightChange: (height: number | undefined) => void;
 }) {
   const { project, setProject } = useProjectContext();
+  const { selection, setSelection } = useSelectionContext();
 
   const track =
     project.tracks.find((t) => t.id === props.trackId) ?? throwError();
@@ -25,11 +28,23 @@ export function TrackIndicators(props: {
     >
       {({ measureRef }) => (
         <div
+          onClick={() => {
+            setSelection({
+              type: SelectionType.Track,
+              trackId: props.trackId,
+            });
+          }}
           ref={measureRef}
           style={{
             paddingTop: token.paddingSM,
             paddingBottom: token.paddingSM,
             borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            ...(selection.type === SelectionType.Track &&
+            selection.trackId === props.trackId
+              ? {
+                  backgroundColor: token.colorPrimaryBg,
+                }
+              : undefined),
           }}
         >
           <Row

@@ -5,16 +5,16 @@ import {
   Instrument,
   InstrumentType,
 } from "../devices/instruments/instruments.types";
-import { Track } from "../track.types";
+import { NotesTrack, TrackType } from "../track.types";
 
 export function createNotesTrack({
   trackInProject,
 }: {
   trackInProject: Project.NoteTrack;
-}): Track.NotesTrack {
+}): NotesTrack {
   if (!trackInProject.instrument) {
     return {
-      type: Track.Type.Notes,
+      type: TrackType.Notes,
       trackId: trackInProject.id,
       instrumentBox: undefined,
       audioEffectBoxes: [],
@@ -29,7 +29,7 @@ export function createNotesTrack({
       [];
 
     return {
-      type: Track.Type.Notes,
+      type: TrackType.Notes,
       trackId: trackInProject.id,
       instrumentBox,
       audioEffectBoxes: [],

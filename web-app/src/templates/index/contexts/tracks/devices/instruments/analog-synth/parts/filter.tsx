@@ -21,6 +21,14 @@ export function createAnalogSynthFilter({}: {
   const filter = new Tone.BiquadFilter();
 
   return {
+    getCutOffFrequency: () => filter.frequency.getValueAtTime(Tone.now()),
+    setCutoffFrequency: (value: number) => {
+      filter.frequency.setValueAtTime(value, Tone.now());
+    },
+    getResonance: () => filter.Q.getValueAtTime(Tone.now()),
+    setResonance: (value: number) => {
+      filter.Q.setValueAtTime(value, Tone.now());
+    },
     getToneInstance: () => filter,
     connect: (node: InputNode) => filter.connect(node),
     dispose: () => {

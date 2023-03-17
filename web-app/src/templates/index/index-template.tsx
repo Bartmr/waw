@@ -36,14 +36,12 @@ function Content() {
         <div
           style={{
             height: "35%",
-            padding: token.paddingSM,
-            boxShadow: extraToken.boxShadowSecondaryTop,
+            borderTop: `1px solid ${token.colorTextBase}`,
             backgroundColor: token.colorBgBase,
           }}
         >
           <div
             style={{
-              borderTop: `1px solid ${token.colorText}`,
               height: "100%",
               overflow: "hidden",
             }}

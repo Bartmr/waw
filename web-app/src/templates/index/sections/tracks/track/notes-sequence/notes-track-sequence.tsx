@@ -2,7 +2,7 @@ import { useToken } from "@/components/ui-kit/core/token";
 import { Project } from "../../../../contexts/project/project.types";
 import { useProjectContext } from "../../../../contexts/project/project-context";
 import { throwError } from "@/logic/internals/utils/throw-error";
-import { Track } from "@/templates/index/contexts/tracks/track.types";
+import { TrackType } from "@/templates/index/contexts/tracks/track.types";
 
 export const MEASURE_WIDTH = 96;
 
@@ -41,7 +41,7 @@ export function NotesTrackSequence(props: {
 
   const track =
     project.tracks.find((track) => track.id === props.trackId) || throwError();
-  if (track.type !== Track.Type.Notes) {
+  if (track.type !== TrackType.Notes) {
     throw new Error();
   }
   const notes: Project.Note[] = track.notes;

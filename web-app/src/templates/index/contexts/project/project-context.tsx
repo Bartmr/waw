@@ -11,11 +11,11 @@ import {
 import { v1 } from "uuid";
 import { measuresToSeconds } from "./time/time-converters";
 import { Project } from "./project.types";
-import { Track } from "../tracks/track.types";
 import {
   Instrument,
   InstrumentType,
 } from "../tracks/devices/instruments/instruments.types";
+import { TrackType } from "../tracks/track.types";
 
 type ContextValue = {
   project: Project.Project;
@@ -30,7 +30,7 @@ const PROJECT_MOCK: Project.Project = {
   lengthInMeasures: 4,
   tracks: [
     {
-      type: Track.Type.Notes,
+      type: TrackType.Notes,
       id: v1(),
       label: "Track 1",
       notes: [],
@@ -41,7 +41,7 @@ const PROJECT_MOCK: Project.Project = {
       audioEffects: [],
     },
     {
-      type: Track.Type.Notes,
+      type: TrackType.Notes,
       id: v1(),
       label: "Track 2",
       notes: [],

@@ -1,6 +1,5 @@
 import { useExtraToken } from "@/components/ui-kit/core/extra-token";
 import { useToken } from "@/components/ui-kit/core/token";
-import { Track as TrackType } from "../../contexts/tracks/track.types";
 import { usePlaybackContext } from "../../contexts/playback/playback-context";
 import { useProjectContext } from "../../contexts/project/project-context";
 import {
@@ -11,13 +10,15 @@ import { PositionIndicator } from "./position-indicator/position-indicator";
 import { Sequence } from "tone";
 import { TrackIndicators } from "./track/channel/track-indicators";
 import { useState } from "react";
-import { Button } from "antd";
+import { Button, Dropdown } from "antd";
 import { Add } from "@mui/icons-material";
+import { v1 } from "uuid";
+import { TrackType } from "../../contexts/tracks/track.types";
 
 export function Tracks() {
   const token = useToken();
   const extraToken = useExtraToken();
-  const { project, lengthInSeconds } = useProjectContext();
+  const { project, lengthInSeconds, setProject } = useProjectContext();
   const playgroundContext = usePlaybackContext();
 
   const [trackIndicatorHeights, setTrackIndicatorHeights] = useState<{
@@ -40,7 +41,7 @@ export function Tracks() {
         }}
       >
         {project.tracks.map((track) => {
-          if (track.type === TrackType.Type.Notes) {
+          if (track.type === TrackType.Notes) {
             return (
               <TrackIndicators
                 key={track.id}
@@ -66,16 +67,44 @@ export function Tracks() {
             padding: token.paddingSM,
           }}
         >
-          <Button
-            size="large"
-            type="dashed"
-            style={{
-              width: "100%",
+          <Dropdown
+            trigger={["click"]}
+            menu={{
+              items: [
+                {
+                  key: "notes",
+                  label: "Notes track",
+                  onClick: () => {
+                    setProject({
+                      ...project,
+                      tracks: [
+                        ...project.tracks,
+                        {
+                          type: TrackType.Notes,
+                          id: v1(),
+                          label: `Track ${project.tracks.length + 1 + 1}`,
+                          notes: [],
+                          instrument: undefined,
+                          audioEffects: [],
+                        },
+                      ],
+                    });
+                  },
+                },
+              ],
             }}
-            icon={<Add />}
           >
-            Add Track
-          </Button>
+            <Button
+              size="large"
+              type="dashed"
+              style={{
+                width: "100%",
+              }}
+              icon={<Add />}
+            >
+              Add Track
+            </Button>
+          </Dropdown>
         </div>
       </div>
       {/* <div

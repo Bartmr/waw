@@ -4,10 +4,10 @@ import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 import { useProjectContext } from "../project/project-context";
 import { Project } from "../project/project.types";
 import { createNotesTrack } from "./note-track/create-notes-track";
-import { Track } from "./track.types";
+import { NotesTrack, TrackType } from "./track.types";
 
 type IndexedTracks = {
-  [trackId: string]: Track.NotesTrack;
+  [trackId: string]: NotesTrack;
 };
 
 const Context = createContext<null | IndexedTracks>(null);
@@ -61,7 +61,7 @@ export function TracksContextProvider(props: { children: ReactNode }) {
     const newlyIndexedTracks: IndexedTracks = {};
 
     for (const trackInProjectToAdd of tracksInProjectToAdd) {
-      if (trackInProjectToAdd.type === Track.Type.Notes) {
+      if (trackInProjectToAdd.type === TrackType.Notes) {
         newlyIndexedTracks[trackInProjectToAdd.id] = createNotesTrack({
           trackInProject: trackInProjectToAdd,
         });
@@ -75,8 +75,8 @@ export function TracksContextProvider(props: { children: ReactNode }) {
       const runtimeTrack = matchingTracksPair.runtime;
 
       if (
-        projectTrack.type === Track.Type.Notes &&
-        runtimeTrack.type === Track.Type.Notes
+        projectTrack.type === TrackType.Notes &&
+        runtimeTrack.type === TrackType.Notes
       ) {
         const projectTrackToken = JSON.stringify({
           instrument: projectTrack.instrument?.type,
@@ -95,7 +95,7 @@ export function TracksContextProvider(props: { children: ReactNode }) {
 
       runtimeTrack.dispose();
 
-      if (projectTrack.type === Track.Type.Notes) {
+      if (projectTrack.type === TrackType.Notes) {
         newlyIndexedTracks[projectTrack.id] = createNotesTrack({
           trackInProject: projectTrack,
         });

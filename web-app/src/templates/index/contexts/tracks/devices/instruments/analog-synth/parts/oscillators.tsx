@@ -3,6 +3,7 @@ import { DeepPartial } from "@/logic/internals/utils/types/deep-partial";
 import { Tone } from "@/logic/internals/vendors/tone";
 import {
   octaveAndRemainderCentsToTotalCents,
+  totalCentsToOctaveAndRemainderCents,
   yToNoteName,
 } from "@/templates/index/contexts/project/notes/note-converters";
 
@@ -55,28 +56,32 @@ export function createAnalogSynthOscillatorsPool({
   /* --- */
   /* --- */
 
+  let osc1Shape =
+    initialSettings?.osc1?.shape ?? AnalogSynthOscillatorShape.Triangle;
+  let osc2Shape =
+    initialSettings?.osc2?.shape ?? AnalogSynthOscillatorShape.Triangle;
+
+  /* --- */
+  /* --- */
+  /* --- */
+
   const oscillatorsPool: OscillatorsPool = {
     free: [],
     occupied: new Map(),
   };
 
+  /* --- */
+  /* --- */
+  /* --- */
+
   const osc1Volume = new Tone.Signal<"decibels">({
     units: "decibels",
-    value: 0,
+    value: initialSettings?.osc1?.volume ?? 0,
   });
   const osc2Volume = new Tone.Signal<"decibels">({
     units: "decibels",
-    value: -127,
+    value: initialSettings?.osc2?.volume ?? -127,
   });
-
-  /* --- */
-  /* --- */
-  /* --- */
-
-  let osc1Shape =
-    initialSettings?.osc1?.shape ?? AnalogSynthOscillatorShape.Triangle;
-  let osc2Shape =
-    initialSettings?.osc2?.shape ?? AnalogSynthOscillatorShape.Triangle;
 
   const osc1Detune = new Tone.Signal<"cents">({
     units: "cents",
@@ -135,6 +140,132 @@ export function createAnalogSynthOscillatorsPool({
   /* --- */
 
   return {
+    osc1: {
+      getShape: () => osc1Shape,
+      setShape: (
+        shape: AnalogSynthOscillatorShape,
+        filter: Tone.BiquadFilter
+      ) => {
+        osc1Shape = shape;
+
+        for (const combination of oscillatorsPool.free) {
+          combination.osc1.dispose();
+
+          combination.osc1 = new Tone.Oscillator({
+            type: osc1Shape,
+          });
+
+          combination.osc1.connect(filter);
+        }
+      },
+      getDetuneOctaves: () => {
+        const { octaves } = totalCentsToOctaveAndRemainderCents(
+          osc1Detune.getValueAtTime(Tone.now())
+        );
+
+        return octaves;
+      },
+      setDetuneOctaves(octaves: number) {
+        const { remainderCents } = totalCentsToOctaveAndRemainderCents(
+          osc1Detune.getValueAtTime(Tone.now())
+        );
+
+        osc1Detune.setValueAtTime(
+          octaveAndRemainderCentsToTotalCents({
+            octaves: octaves,
+            cents: remainderCents,
+          }),
+          Tone.now()
+        );
+      },
+      getDetuneCents: () => {
+        const { remainderCents } = totalCentsToOctaveAndRemainderCents(
+          osc1Detune.getValueAtTime(Tone.now())
+        );
+
+        return remainderCents;
+      },
+      setDetuneCents(cents: number) {
+        const { octaves } = totalCentsToOctaveAndRemainderCents(
+          osc1Detune.getValueAtTime(Tone.now())
+        );
+
+        osc1Detune.setValueAtTime(
+          octaveAndRemainderCentsToTotalCents({
+            octaves: octaves,
+            cents: cents,
+          }),
+          Tone.now()
+        );
+      },
+      getVolume: () => osc2Volume.getValueAtTime(Tone.now()),
+      setVolume(value: number) {
+        osc1Volume.setValueAtTime(value, Tone.now());
+      },
+    },
+    osc2: {
+      getShape: () => osc2Shape,
+      setShape: (
+        shape: AnalogSynthOscillatorShape,
+        filter: Tone.BiquadFilter
+      ) => {
+        osc2Shape = shape;
+
+        for (const combination of oscillatorsPool.free) {
+          combination.osc2.dispose();
+
+          combination.osc2 = new Tone.Oscillator({
+            type: osc1Shape,
+          });
+
+          combination.osc2.connect(filter);
+        }
+      },
+      getDetuneOctaves: () => {
+        const { octaves } = totalCentsToOctaveAndRemainderCents(
+          osc2Detune.getValueAtTime(Tone.now())
+        );
+
+        return octaves;
+      },
+      setDetuneOctaves(octaves: number) {
+        const { remainderCents } = totalCentsToOctaveAndRemainderCents(
+          osc2Detune.getValueAtTime(Tone.now())
+        );
+
+        osc2Detune.setValueAtTime(
+          octaveAndRemainderCentsToTotalCents({
+            octaves: octaves,
+            cents: remainderCents,
+          }),
+          Tone.now()
+        );
+      },
+      getDetuneCents: () => {
+        const { remainderCents } = totalCentsToOctaveAndRemainderCents(
+          osc2Detune.getValueAtTime(Tone.now())
+        );
+
+        return remainderCents;
+      },
+      setDetuneCents(cents: number) {
+        const { octaves } = totalCentsToOctaveAndRemainderCents(
+          osc2Detune.getValueAtTime(Tone.now())
+        );
+
+        osc2Detune.setValueAtTime(
+          octaveAndRemainderCentsToTotalCents({
+            octaves: octaves,
+            cents: cents,
+          }),
+          Tone.now()
+        );
+      },
+      getVolume: () => osc2Volume.getValueAtTime(Tone.now()),
+      setVolume(value: number) {
+        osc2Volume.setValueAtTime(value, Tone.now());
+      },
+    },
     triggerAttack: ({
       y,
       filter,
@@ -150,7 +281,7 @@ export function createAnalogSynthOscillatorsPool({
 
       oscillatorsPool.occupied.set(y, oscillatorsGroup);
 
-      oscillatorsGroup.frequency.setValueAtTime(yToNoteName(y), 0);
+      oscillatorsGroup.frequency.setValueAtTime(yToNoteName(y), Tone.now());
       oscillatorsGroup.osc1.start(0);
       oscillatorsGroup.osc2.start(0);
     },
