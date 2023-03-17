@@ -19,6 +19,33 @@ export function yToNoteName(y: number) {
   return `${letter}${octaveNumber + 1}`;
 }
 
+export function noteNameToY(noteName: string) {
+  const noteLetters: { [key: string]: number } = {
+    C: 0,
+    "C#": 1,
+    Db: 1,
+    D: 2,
+    "D#": 3,
+    Eb: 3,
+    E: 4,
+    F: 5,
+    "F#": 6,
+    Gb: 6,
+    G: 7,
+    "G#": 8,
+    Ab: 8,
+    A: 9,
+    "A#": 10,
+    Bb: 10,
+    B: 11,
+  };
+
+  const letter = noteName.slice(0, noteName.length - 1);
+  const octaveNumber = parseInt(noteName.slice(noteName.length - 1)) - 1;
+
+  return (noteLetters[letter] ?? throwError()) + octaveNumber * 12;
+}
+
 export const noteNameToFrequency = (note: string) => {
   const getNoteDistanceFromC0 = (note: string) => {
     // Notes in an octave

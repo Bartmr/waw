@@ -273,11 +273,10 @@ export function createAnalogSynthOscillatorsPool({
       y: number;
       filter: Tone.BiquadFilter;
     }) => {
-      let oscillatorsGroup = oscillatorsPool.free.pop();
-
-      if (!oscillatorsGroup) {
-        oscillatorsGroup = createOscillatorsGroup({ filter });
-      }
+      const oscillatorsGroup =
+        oscillatorsPool.occupied.get(y) ??
+        oscillatorsPool.free.pop() ??
+        createOscillatorsGroup({ filter });
 
       oscillatorsPool.occupied.set(y, oscillatorsGroup);
 
@@ -300,7 +299,7 @@ export function createAnalogSynthOscillatorsPool({
       Tone.Transport.schedule(() => {
         oscillatorsPool.occupied.delete(y);
         oscillatorsPool.free.push(oscillatorsGroup);
-      }, release);
+      }, `+${release}`);
     },
     dispose: () => {
       osc1Volume.dispose();

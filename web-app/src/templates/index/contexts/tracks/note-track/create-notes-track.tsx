@@ -1,3 +1,4 @@
+import { Tone } from "@/logic/internals/vendors/tone";
 import { v1 } from "uuid";
 import { Project } from "../../project/project.types";
 import { createAnalogSynthInstrumentBox } from "../devices/instruments/analog-synth/analog-synth";
@@ -25,6 +26,9 @@ export function createNotesTrack({
     const instrumentBox = createAnalogSynthInstrumentBox({
       initialSettings: trackInProject.instrument.settings,
     });
+
+    instrumentBox.instrumentRef.connect(Tone.getDestination());
+
     const audioEffectBoxes: Array<{ audioEffect: { dispose: () => void } }> =
       [];
 

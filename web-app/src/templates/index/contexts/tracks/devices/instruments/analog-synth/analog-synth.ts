@@ -42,7 +42,7 @@ function createAnalogSynthInstrument({
 
   return {
     connect: (inputNode: InputNode) => {
-      filter.getToneInstance();
+      envelope.connect(inputNode);
     },
     dispose: () => {
       oscillatorsPool.dispose();
