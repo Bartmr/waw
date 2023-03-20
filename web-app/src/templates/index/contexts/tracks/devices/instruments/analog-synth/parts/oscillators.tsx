@@ -25,9 +25,9 @@ type OscillatorSettings = {
     */
   detuneCents: number;
   /*
-      From 0 to -127 dB
-    */
-  volume: number;
+    From 0 to 1
+  */
+  gain: number;
 };
 
 export type AnalogSynthOscillatorsSettings = {
@@ -37,8 +37,10 @@ export type AnalogSynthOscillatorsSettings = {
 
 export function createAnalogSynthOscillatorsPool({
   initialSettings,
+  filter,
 }: {
   initialSettings: undefined | DeepPartial<AnalogSynthOscillatorsSettings>;
+  filter: Tone.BiquadFilter;
 }) {
   type OscillatorsCombination = {
     frequency: Tone.Signal<"frequency">;
@@ -74,14 +76,11 @@ export function createAnalogSynthOscillatorsPool({
   /* --- */
   /* --- */
 
-  const osc1Volume = new Tone.Signal<"decibels">({
-    units: "decibels",
-    value: initialSettings?.osc1?.volume ?? 0,
-  });
-  const osc2Volume = new Tone.Signal<"decibels">({
-    units: "decibels",
-    value: initialSettings?.osc2?.volume ?? -127,
-  });
+  const osc1Gain = new Tone.Gain(initialSettings?.osc1?.gain ?? 1);
+  osc1Gain.connect(filter);
+
+  const osc2Gain = new Tone.Gain(initialSettings?.osc2?.gain ?? 0);
+  osc2Gain.connect(filter);
 
   const osc1Detune = new Tone.Signal<"cents">({
     units: "cents",
@@ -102,11 +101,7 @@ export function createAnalogSynthOscillatorsPool({
   /* --- */
   /* --- */
 
-  const createOscillatorsGroup = ({
-    filter,
-  }: {
-    filter: Tone.BiquadFilter;
-  }) => {
+  const createOscillatorsGroup = () => {
     const osc1 = new Tone.Oscillator({
       type: osc1Shape,
     });
@@ -125,8 +120,8 @@ export function createAnalogSynthOscillatorsPool({
     osc1Detune.connect(osc1.detune);
     osc2Detune.connect(osc2.detune);
 
-    osc1Volume.connect(osc1.volume);
-    osc2Volume.connect(osc2.volume);
+    osc1.connect(osc1Gain);
+    osc2.connect(osc2Gain);
 
     return {
       frequency,
@@ -142,10 +137,7 @@ export function createAnalogSynthOscillatorsPool({
   return {
     osc1: {
       getShape: () => osc1Shape,
-      setShape: (
-        shape: AnalogSynthOscillatorShape,
-        filter: Tone.BiquadFilter
-      ) => {
+      setShape: (shape: AnalogSynthOscillatorShape) => {
         osc1Shape = shape;
 
         for (const combination of oscillatorsPool.free) {
@@ -155,7 +147,7 @@ export function createAnalogSynthOscillatorsPool({
             type: osc1Shape,
           });
 
-          combination.osc1.connect(filter);
+          combination.osc1.connect(osc1Gain);
         }
       },
       getDetuneOctaves: () => {
@@ -198,17 +190,14 @@ export function createAnalogSynthOscillatorsPool({
           Tone.now()
         );
       },
-      getVolume: () => osc2Volume.getValueAtTime(Tone.now()),
+      getVolume: () => osc1Gain.gain.getValueAtTime(Tone.now()),
       setVolume(value: number) {
-        osc1Volume.setValueAtTime(value, Tone.now());
+        osc1Gain.gain.setValueAtTime(value, Tone.now());
       },
     },
     osc2: {
       getShape: () => osc2Shape,
-      setShape: (
-        shape: AnalogSynthOscillatorShape,
-        filter: Tone.BiquadFilter
-      ) => {
+      setShape: (shape: AnalogSynthOscillatorShape) => {
         osc2Shape = shape;
 
         for (const combination of oscillatorsPool.free) {
@@ -218,7 +207,7 @@ export function createAnalogSynthOscillatorsPool({
             type: osc1Shape,
           });
 
-          combination.osc2.connect(filter);
+          combination.osc2.connect(osc2Gain);
         }
       },
       getDetuneOctaves: () => {
@@ -261,28 +250,22 @@ export function createAnalogSynthOscillatorsPool({
           Tone.now()
         );
       },
-      getVolume: () => osc2Volume.getValueAtTime(Tone.now()),
+      getVolume: () => osc2Gain.gain.getValueAtTime(Tone.now()),
       setVolume(value: number) {
-        osc2Volume.setValueAtTime(value, Tone.now());
+        osc2Gain.gain.setValueAtTime(value, Tone.now());
       },
     },
-    triggerAttack: ({
-      y,
-      filter,
-    }: {
-      y: number;
-      filter: Tone.BiquadFilter;
-    }) => {
+    triggerAttack: ({ y }: { y: number }) => {
       const oscillatorsGroup =
         oscillatorsPool.occupied.get(y) ??
         oscillatorsPool.free.pop() ??
-        createOscillatorsGroup({ filter });
+        createOscillatorsGroup();
 
       oscillatorsPool.occupied.set(y, oscillatorsGroup);
 
       oscillatorsGroup.frequency.setValueAtTime(yToNoteName(y), Tone.now());
-      oscillatorsGroup.osc1.start(0);
-      oscillatorsGroup.osc2.start(0);
+      oscillatorsGroup.osc1.start(Tone.now());
+      oscillatorsGroup.osc2.start(Tone.now());
     },
     triggerRelease: ({
       y,
@@ -302,8 +285,8 @@ export function createAnalogSynthOscillatorsPool({
       }, `+${release}`);
     },
     dispose: () => {
-      osc1Volume.dispose();
-      osc2Volume.dispose();
+      osc1Gain.dispose();
+      osc2Gain.dispose();
 
       osc1Detune.dispose();
       osc2Detune.dispose();

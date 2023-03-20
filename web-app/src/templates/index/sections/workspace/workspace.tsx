@@ -3,6 +3,7 @@ import { useToken } from "@/components/ui-kit/core/token";
 import { throwError } from "@/logic/internals/utils/throw-error";
 import { ReactNode, useState } from "react";
 import ReactDOM from "react-dom";
+import { DevicesEditor } from "./devices-editor/devices-editor";
 import { NotesEditor } from "./notes-editor/notes-editor";
 
 export function Workspace() {
@@ -17,7 +18,7 @@ export function Workspace() {
         overflow: "auto",
       }}
     >
-      <NotesEditor />
+      <DevicesEditor />
     </div>
   );
 }

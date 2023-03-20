@@ -6,5 +6,7 @@ export function useExtraToken() {
     0 -3px 6px -4px rgba(0, 0, 0, 0.12),
     0 -9px 28px 8px rgba(0, 0, 0, 0.05)`,
     borderWidth: 1,
+    technicalFontFamily: "monospace",
+    colorDarkBg: "#2e2e2e",
   };
 }
